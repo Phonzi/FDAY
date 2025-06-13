@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Father's Day!</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the Vanderbilt-inspired theme */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .vandy-black-bg {
+            background-color: #000000; /* Vanderbilt Black */
+        }
+        .vandy-gold-text {
+            color: #AE9A65; /* Vanderbilt Gold */
+        }
+        .vandy-gold-bg {
+            background-color: #AE9A65; /* Vanderbilt Gold */
+        }
+        .vandy-gold-bg:hover {
+            background-color: #9A8454; /* A slightly darker gold for hover */
+        }
+    </style>
+</head>
+<body class="bg-gray-200">
+
+    <!-- Main Container -->
+    <div class="vandy-black-bg text-white min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
+        <div class="max-w-2xl w-full mx-auto bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl overflow-hidden">
+            
+            <!-- Header Section -->
+            <header class="text-center p-8">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-wider vandy-gold-text" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                    Happy Father's Day!
+                </h1>
+            </header>
+
+            <!-- Image Placeholder Section -->
+            <div class="px-8 pb-8">
+                <div class="aspect-w-16 aspect-h-9 bg-gray-700 rounded-2xl flex items-center justify-center border-4 border-white/50 shadow-lg">
+                    <img src="https://placehold.co/800x450/000000/AE9A65?text=Your+Favorite+Photo+Here" 
+                         alt="Placeholder for a family photo" 
+                         class="w-full h-full object-cover rounded-xl"
+                         onerror="this.onerror=null;this.src='https://placehold.co/800x450/CCCCCC/FFFFFF?text=Image+Not+Found';">
+                </div>
+            </div>
+
+            <!-- Message Section -->
+            <main class="p-8 bg-black/20 rounded-t-3xl">
+                <div class="bg-white text-gray-800 p-6 rounded-2xl shadow-inner">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-900">On Yawn Ah Say Oh?</h2>
+                    <div class="space-y-4 text-gray-700 leading-relaxed">
+                        <p>
+Happy Father's Day! You've taught me many valuable lessons over the years, but one of the most important is that every worthwhile occation requires a series of themed puzzles to 
+keep everyone on their toes. Not to let this day go to waste, I present to you some challenges to get at the heart of the skills that set you apart.                 
+
+</p>
+
+                    </div>
+                </div>
+            </main>
+
+            <!-- Button Section -->
+            <footer class="p-8 text-center">
+                <button class="vandy-gold-bg text-black font-bold text-xl sm:text-2xl py-4 px-8 rounded-full shadow-lg transform hover:scale-105 transition-all duration-300 ease-in-out w-full max-w-md">
+                    Start Father's Day Challenges!
+                </button>
+            </footer>
+
+        </div>
+    </div>
+
+</body>
+</html>
