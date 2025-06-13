@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Bear Beatdown!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Style for the element being dragged */
+        .dragging {
+            opacity: 0.5;
+            border: 2px dashed #f59e0b; /* amber-500 */
+        }
+        /* Style for the drop target area */
+        .drag-over {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        /* Star animation */
+        .star {
+            position: fixed;
+            width: 15px;
+            height: 15px;
+            background-color: gold;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            animation: pop-and-fade 1s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes pop-and-fade {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl mx-auto">
+        <!-- Game Title and Instructions -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-amber-400 mb-2">Employee Evaluation Quiz!</h1>
+            <p class="text-gray-300 max-w-lg mx-auto">
+                I used AI to analyze each photo and generate a probability that each person would beat a black bear in a fisticuff boxing match.
+                Rank the people based on who has the best bear fighting abilities.
+                <strong>Drag and drop the pictures</strong> to arrange them in order of
+                <span class="text-amber-300 font-semibold">lowest to highest</span> chance of winning.
+            </p>
+        </div>
+
+        <!-- Draggable Image Container -->
+        <div id="image-container" class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 flex-wrap">
+            <!-- Images will be injected here by JavaScript -->
+        </div>
+
+        <!-- Status Box -->
+        <div id="status-box" class="text-center p-4 rounded-lg bg-gray-800 border border-gray-700 min-h-[100px] flex flex-col justify-center items-center">
+            <p id="status-text" class="text-lg text-yellow-500">At least one picture is out of order.</p>
+            <a id="continue-button" href="./BTS.html" target="_blank" class="hidden mt-4 px-6 py-2 bg-green-500 text-white font-bold rounded-lg shadow-md hover:bg-green-600 transition-all">
+                Continue
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA ---
+            // Array of people with their data. The `id` is used for sorting comparison.
+            const people = [
+                { id: 2, name: 'Faith', imgSrc: 'https://www.logicenvironmental.com/images/2024/04/09/faith.png', chance: 0.09 },
+                { id: 4, name: 'Carlos', imgSrc: 'https://www.logicenvironmental.com/images/2024/04/09/carlos.png', chance: 0.25 },
+                { id: 1, name: 'Paul', imgSrc: 'https://www.logicenvironmental.com/images/2024/04/09/paul-copy.jpg', chance: 0.37 },
+                { id: 5, name: 'Liz', imgSrc: 'https://www.logicenvironmental.com/images/2024/04/09/liz-hecker-photo-copy2.png', chance: 0.14 },
+                { id: 3, name: 'Dennis', imgSrc: 'https://www.logicenvironmental.com/images/2024/04/09/dennis.png', chance: 0.04 },
+            ];
+
+            // The correct order of IDs, from lowest to highest chance
+            // Dennis (0.04), Faith (0.09), Liz (0.14), Carlos (0.25), Paul (0.37)
+            const correctOrder = [3, 2, 5, 4, 1];
+
+            // --- STATE ---
+            let draggedItem = null;
+
+            // --- DOM ELEMENTS ---
+            const imageContainer = document.getElementById('image-container');
+            const statusText = document.getElementById('status-text');
+            const statusBox = document.getElementById('status-box');
+            const continueButton = document.getElementById('continue-button');
+
+            // --- FUNCTIONS ---
+
+            /**
+             * Renders the images to the DOM based on the current order in the `people` array.
+             */
+            function renderImages() {
+                imageContainer.innerHTML = ''; // Clear existing images
+                people.forEach(person => {
+                    const personElement = document.createElement('div');
+                    personElement.id = `person-${person.id}`;
+                    personElement.draggable = true;
+                    personElement.className = 'person-card cursor-grab bg-gray-800 p-3 rounded-lg shadow-lg transition-all duration-300 w-40 text-center';
+                    personElement.innerHTML = `
+                        <img src="${person.imgSrc}" alt="Photo of ${person.name}" class="w-full h-40 object-cover rounded-md mb-2 pointer-events-none" onerror="this.onerror=null;this.src='https://placehold.co/150x150/ef4444/ffffff?text=Error';">
+                        <p class="font-semibold text-gray-200">${person.name}</p>
+                        <p id="chance-${person.id}" class="text-amber-400 font-bold text-xl h-7"></p> <!-- Placeholder for chance -->
+                    `;
+                    imageContainer.appendChild(personElement);
+                });
+                addDragListeners();
+            }
+
+            /**
+             * Adds drag-and-drop event listeners to each person card.
+             */
+            function addDragListeners() {
+                const draggables = document.querySelectorAll('.person-card');
+                draggables.forEach(draggable => {
+                    draggable.addEventListener('dragstart', handleDragStart);
+                    draggable.addEventListener('dragend', handleDragEnd);
+                    draggable.addEventListener('dragover', handleDragOver);
+                    draggable.addEventListener('dragenter', handleDragEnter);
+                    draggable.addEventListener('dragleave', handleDragLeave);
+                    draggable.addEventListener('drop', handleDrop);
+                });
+            }
+
+            /**
+             * Checks if the current order of images matches the correct order.
+             */
+            function checkOrder() {
+                const currentOrder = Array.from(imageContainer.children).map(child => parseInt(child.id.split('-')[1]));
+                const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(correctOrder);
+
+                if (isCorrect) {
+                    statusText.textContent = 'Congratulations! You really know your bear maulings!';
+                    statusText.classList.remove('text-yellow-500');
+                    statusText.classList.add('text-green-400');
+                    continueButton.classList.remove('hidden');
+                    
+                    // Disable dragging and reveal chances
+                    document.querySelectorAll('.person-card').forEach(card => {
+                        card.draggable = false;
+                        card.classList.remove('cursor-grab');
+                        const personId = parseInt(card.id.split('-')[1]);
+                        const personData = people.find(p => p.id === personId);
+                        document.getElementById(`chance-${personId}`).textContent = `${personData.chance}%`;
+                    });
+
+                    triggerWinAnimation();
+                }
+            }
+            
+            /**
+             * Creates a shower of stars to celebrate the win.
+             */
+            function triggerWinAnimation() {
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const star = document.createElement('div');
+                        star.className = 'star';
+                        star.style.top = `${Math.random() * 100}vh`;
+                        star.style.left = `${Math.random() * 100}vw`;
+                        document.body.appendChild(star);
+                        // Clean up the star element after the animation finishes
+                        setTimeout(() => star.remove(), 1000);
+                    }, i * 20); // Stagger the star creation
+                }
+            }
+
+
+            // --- DRAG & DROP HANDLERS ---
+
+            function handleDragStart(e) {
+                draggedItem = this;
+                this.classList.add('dragging');
+                // Use a timeout to allow the browser to create the drag image
+                setTimeout(() => {
+                    this.style.display = 'none';
+                }, 0);
+            }
+
+            function handleDragEnd(e) {
+                this.classList.remove('dragging');
+                this.style.display = '';
+                // Clear all 'drag-over' styles
+                document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+            }
+
+            function handleDragOver(e) {
+                e.preventDefault(); // Necessary to allow dropping
+            }
+            
+            function handleDragEnter(e) {
+                e.preventDefault();
+                this.classList.add('drag-over');
+            }
+
+            function handleDragLeave(e) {
+                this.classList.remove('drag-over');
+            }
+
+            function handleDrop(e) {
+                e.preventDefault();
+                if (this !== draggedItem) {
+                    // Determine the position to insert the dragged item
+                    const allItems = [...imageContainer.querySelectorAll('.person-card')];
+                    const draggedIndex = allItems.indexOf(draggedItem);
+                    const targetIndex = allItems.indexOf(this);
+                    
+                    // Remove dragged item and re-insert it at the new position
+                    imageContainer.removeChild(draggedItem);
+                    if (draggedIndex < targetIndex) {
+                        imageContainer.insertBefore(draggedItem, this.nextSibling);
+                    } else {
+                        imageContainer.insertBefore(draggedItem, this);
+                    }
+                }
+                this.classList.remove('drag-over');
+                draggedItem.style.display = ''; // Make sure it's visible again
+                checkOrder();
+            }
+
+
+            // --- INITIALIZATION ---
+            renderImages();
+        });
+    </script>
+</body>
+</html>
