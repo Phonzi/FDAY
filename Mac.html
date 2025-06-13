@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taco Mac: Real or Fake?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation; /* Prevents double-tap zoom on mobile */
+        }
+        .card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .card.selected {
+            transform: scale(0.95);
+            border-color: #fbbf24; /* amber-400 */
+            background-color: #fef3c7; /* amber-100 */
+        }
+        .star {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: white;
+            border-radius: 50%;
+            animation: flash 1.5s infinite;
+            opacity: 0;
+        }
+        @keyframes flash {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen p-4">
+    <div id="game-container" class="w-full max-w-4xl mx-auto">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-bold text-amber-400">Taco Mac: Real or Fake?</h1>
+            <p class="text-gray-300 mt-2 max-w-2xl mx-auto">Welcome, Taco Mac expert! Below are 12 menu items. 10 are real, but 2 are fakes. Find the two fake items to prove your knowledge. You can select up to two items at a time.</p>
+        </div>
+
+        <div id="menu-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Menu items will be injected here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+         <div id="star-container" class="absolute inset-0 overflow-hidden"></div>
+        <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 text-center border-2 border-amber-400 relative">
+            <h2 class="text-3xl font-bold text-amber-400 mb-4">Congratulations!</h2>
+            <p class="text-gray-200 text-lg mb-8">I should never have doubted your deep Taco Mac knowledge.</p>
+            <a href="https://www.google.com" class="bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold py-3 px-8 rounded-lg text-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-amber-300">
+                Continue
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA ---
+            const menuItems = [
+                { name: 'Oven Roasted Wings', isFake: false },
+                { name: 'Bavarian Pretzel Bites', isFake: false },
+                { name: 'South Street Philly Sandwich', isFake: false },
+                { name: 'Blazin’ Buffalo Wrap', isFake: false },
+                { name: 'The ’79 Original', isFake: false },
+                { name: 'Jalapeño Bacon Cheddar Egg Roll', isFake: false },
+                { name: 'Sweet Heat Sticky Ribs', isFake: false },
+                { name: 'Grilled Chicken BLT', isFake: false },
+                { name: 'Salsa Verde Chicken Tacos', isFake: false },
+                { name: 'Crispy Chicken Sandwich', isFake: false },
+                { name: 'Italian Stallion with Salad', isFake: true },
+                { name: 'Three Burgaritas Combo', isFake: true }
+            ];
+
+            // --- STATE ---
+            let selectedItems = [];
+
+            // --- DOM ELEMENTS ---
+            const grid = document.getElementById('menu-grid');
+            const modal = document.getElementById('success-modal');
+            const starContainer = document.getElementById('star-container');
+
+            // --- FUNCTIONS ---
+
+            /**
+             * Shuffles an array in place using the Fisher-Yates algorithm.
+             * @param {Array} array The array to shuffle.
+             */
+            function shuffle(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+            
+            /**
+             * Creates and displays the stars for the success animation.
+             */
+            function createStars() {
+                starContainer.innerHTML = ''; // Clear previous stars
+                const starCount = 100;
+                for (let i = 0; i < starCount; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.animationDelay = `${Math.random() * 1.5}s`;
+                    starContainer.appendChild(star);
+                }
+            }
+
+
+            /**
+             * Renders the shuffled menu items into the grid.
+             */
+            function renderGrid() {
+                shuffle(menuItems);
+                grid.innerHTML = ''; // Clear existing grid
+                menuItems.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card bg-gray-800 rounded-lg p-4 h-32 flex items-center justify-center text-center cursor-pointer border-4 border-transparent select-none';
+                    card.dataset.name = item.name;
+                    
+                    const text = document.createElement('span');
+                    text.className = 'text-base font-semibold text-gray-200';
+                    text.textContent = item.name;
+                    
+                    card.appendChild(text);
+                    grid.appendChild(card);
+                });
+            }
+
+            /**
+             * Handles the logic when a card is clicked.
+             * @param {Event} e The click event.
+             */
+            function handleCardClick(e) {
+                const card = e.target.closest('.card');
+                if (!card) return;
+
+                const itemName = card.dataset.name;
+                const cardIndex = selectedItems.indexOf(itemName);
+
+                if (cardIndex > -1) {
+                    // Item is already selected, so deselect it
+                    selectedItems.splice(cardIndex, 1);
+                    card.classList.remove('selected');
+                } else {
+                    // Item is not selected
+                    if (selectedItems.length >= 2) {
+                        // Deselect the first item if two are already selected
+                        const firstSelectedItemName = selectedItems.shift();
+                        const firstSelectedCard = grid.querySelector(`[data-name="${firstSelectedItemName}"]`);
+                        if (firstSelectedCard) {
+                            firstSelectedCard.classList.remove('selected');
+                        }
+                    }
+                    // Select the new item
+                    selectedItems.push(itemName);
+                    card.classList.add('selected');
+                }
+                
+                checkWinCondition();
+            }
+
+            /**
+             * Checks if the two selected items are the correct fake ones.
+             */
+            function checkWinCondition() {
+                if (selectedItems.length !== 2) return;
+
+                const selectedObjects = menuItems.filter(item => selectedItems.includes(item.name));
+                const areBothFake = selectedObjects.every(item => item.isFake === true);
+
+                if (areBothFake) {
+                    // Winner!
+                    createStars();
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                }
+            }
+
+            // --- INITIALIZATION ---
+            renderGrid();
+            grid.addEventListener('click', handleCardClick);
+        });
+    </script>
+</body>
+</html>
